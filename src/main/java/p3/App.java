@@ -3,12 +3,13 @@
  */
 package p3;
 
+import p3.Proxy.Proxy;
+
 public class App {
-    public String getGreeting() {
-        return "Hello world.";
-    }
+    public static final int PORT = 12345;
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        Proxy proxy = new Proxy(PORT);
+        proxy.run();
     }
 }
