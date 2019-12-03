@@ -80,32 +80,17 @@ public class Proxy {
                     // 1. Send response to browser
                     StringBuilder responseToBrowser = new StringBuilder();
                     String statusCode = (client.isConnected()) ? "200 OK" : "502 Bad Gateway";
-                    responseToBrowser.append(parser.getVersion() + " " + statusCode);
+                    responseToBrowser.append(parser.getVersion() + " " + statusCode + "\r\n");
                     responseToBrowser.append("\r\n\r\n");
                     System.out.println(responseToBrowser.toString());
 
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
                     outToBrowser.write(responseToBrowser.toString().getBytes());
 
-                    System.out.println("connected: " + client.isConnected());
-
                     // 2. Open a bit tunnel
                     if (client.isConnected()) {
-                        DataInputStream fromServer = new DataInputStream(new BufferedInputStream(client.getInputStream()));
-                        DataOutputStream outToServer = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
-
-                        DataInputStream fromBrowser = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-                        while (true) {
-                            System.out.println("server sent:");
-                            byte[] serverMessage = fromServer.readAllBytes();
-                            System.out.println(Arrays.toString(serverMessage));
-                            outToBrowser.write(serverMessage);
-
-                            System.out.println("browser sent:");
-                            byte[] browserMessage = fromBrowser.readAllBytes();
-                            System.out.println(Arrays.toString(browserMessage));
-                            outToServer.write(fromBrowser.readAllBytes());
-                        }
+                        ConnectTunnel thread = new ConnectTunnel(client, socket);
+                        thread.start();
                     }
                 }
             } catch (IOException e) {
