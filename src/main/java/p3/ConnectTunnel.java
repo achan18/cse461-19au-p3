@@ -5,31 +5,28 @@ import java.net.Socket;
 import java.util.Arrays;
 
 public class ConnectTunnel extends Thread {
-    Socket proxyToServer;
-    Socket proxyToClient;
+    Socket sender;
+    Socket receiver;
+    String senderName;
+    String receiverName;
 
-    public ConnectTunnel(Socket proxyToServer, Socket proxyToClient) {
-        this.proxyToClient = proxyToClient;
-        this.proxyToServer = proxyToServer;
+    public ConnectTunnel(Socket sender, Socket receiver, String senderName, String receiverName) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.senderName = senderName;
+        this.receiverName = receiverName;
     }
 
     public void run() {
         try {
-            DataInputStream fromServer = new DataInputStream(new BufferedInputStream(proxyToServer.getInputStream()));
-            DataOutputStream outToServer = new DataOutputStream(new BufferedOutputStream(proxyToServer.getOutputStream()));
+            DataInputStream fromSender = new DataInputStream(new BufferedInputStream(sender.getInputStream()));
+            DataOutputStream outToReceiver = new DataOutputStream(new BufferedOutputStream(receiver.getOutputStream()));
 
-            DataInputStream fromBrowser = new DataInputStream(new BufferedInputStream(proxyToClient.getInputStream()));
-            DataOutputStream outToBrowser = new DataOutputStream(new BufferedOutputStream(proxyToClient.getOutputStream()));
             while (true) {
-                System.out.println("server sent:");
-                byte[] serverMessage = fromServer.readAllBytes();
-                System.out.println(Arrays.toString(serverMessage));
-                outToBrowser.write(serverMessage);
-
-                System.out.println("browser sent:");
-                byte[] browserMessage = fromBrowser.readAllBytes();
+                System.out.println(senderName + " sent:");
+                byte[] browserMessage = fromSender.readAllBytes();
                 System.out.println(Arrays.toString(browserMessage));
-                outToServer.write(fromBrowser.readAllBytes());
+                outToReceiver.write(browserMessage);
             }
         } catch (IOException e) {
             e.printStackTrace();
