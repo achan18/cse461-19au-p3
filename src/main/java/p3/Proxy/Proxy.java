@@ -2,14 +2,13 @@ package p3.Proxy;
 
 import p3.HttpParser.HttpParser;
 
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class Proxy {
     public int port;
@@ -30,6 +29,7 @@ public class Proxy {
         try {
             System.out.println("waiting for requests...");
             Socket socket = server.accept();
+            System.out.println(socket.getInputStream());
             HttpParser parser = new HttpParser(socket.getInputStream());
             System.out.println(parser.getFirstLine());
             parser.setHeader("Connection", "close");
@@ -43,6 +43,7 @@ public class Proxy {
             if (vals.length == 2) {
                 port = Integer.parseInt(vals[1]);
             } else {
+                // TODO: check if http is missing
                 URL url = new URL(parser.getURI());
                 if (url.getPort() != -1) {
                     port = url.getPort();
@@ -50,24 +51,46 @@ public class Proxy {
                     port = (url.getProtocol() == "https") ? 443 : 80;
                 }
             }
+            System.out.println("host = " + host);
+            System.out.println("port = " + port);
 
             client = new Socket(host, port);
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            System.out.println("client socket = " + client.toString());
+            System.out.println();
 
-            out.writeUTF(parser.getFirstLine() + "\\r\\n");
+            StringBuilder request = new StringBuilder(parser.getFirstLine() + "\r\n");
             Map<String, String> headers = parser.getHeaders();
             headers.forEach((k,v) -> {
-                try {
-                    out.writeUTF(k + ": " + v + "\\r\\n");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                request.append(k + ": " + v + "\r\n");
             });
-            out.writeUTF("\\r\\n");
+            request.append("\r\n");
+            System.out.println(request.toString());
+
+            OutputStream outToServer = client.getOutputStream();
+            DataOutputStream out = new DataOutputStream(outToServer);
+            out.write(request.toString().getBytes());
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            StringBuilder test = new StringBuilder();
+            Stream<String> res = in.lines();
+            res.forEach(line -> {
+                test.append(line + "\r\n");
+            });
+
+//            System.out.println("server sent:");
+//            Stream<String> response = in.lines();
+//            response.forEach(line -> {
+//                System.out.println(line);
+//            });
+
+            DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
+            System.out.println(test.toString());
+            outToBrowser.write(test.toString().getBytes());
 
 
 
-
+            client.close();
+            server.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
