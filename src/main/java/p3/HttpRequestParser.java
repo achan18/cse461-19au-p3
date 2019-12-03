@@ -1,15 +1,14 @@
-package p3.HttpParser;
+package p3;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class HttpParser {
+public class HttpRequestParser {
 
     private String method;
     private String URI;
@@ -17,7 +16,7 @@ public class HttpParser {
     private String firstLine;
     private Map<String, String> headers;
 
-    public HttpParser(InputStream is) {
+    public HttpRequestParser(InputStream is) {
         headers = new HashMap<String,String>();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -37,17 +36,13 @@ public class HttpParser {
 
         // get all headers
         // TODO: make all header keys lower case
-        int count = 0;
         String line;
         while ((line = it.next()).length() != 0) {
-//            String line = it.next();
-//            System.out.println((count++) + ": " + line + ", length = " + line.length());
             if (line != null && line.length() > 0) {
                 String[] args = line.split(": ");
                 headers.put(args[0], args[1]);
             }
         }
-//        System.out.println("OUTSIDE BITCHES");
     }
 
     public void setHeader(String header, String val) {
@@ -56,13 +51,20 @@ public class HttpParser {
         }
     }
 
+    public String getMethod() {
+        return this.method;
+    }
+
     public Map<String, String> getHeaders() {
         return headers;
     }
 
     public String getHeader(String header) {
-
         return headers.getOrDefault(header, null);
+    }
+
+    public String getVersion() {
+        return this.version;
     }
 
     public String getURI() {

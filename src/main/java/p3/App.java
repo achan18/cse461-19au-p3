@@ -3,8 +3,6 @@
  */
 package p3;
 
-import p3.Proxy.Proxy;
-
 public class App {
     public static final int PORT = 12345;
 
