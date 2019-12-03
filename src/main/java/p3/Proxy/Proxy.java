@@ -26,73 +26,74 @@ public class Proxy {
 
     public void run() {
         // TODO: implement starting the proxy
-        try {
-            System.out.println("waiting for requests...");
-            Socket socket = server.accept();
-            System.out.println(socket.getInputStream());
-            HttpParser parser = new HttpParser(socket.getInputStream());
-            System.out.println(parser.getFirstLine());
-            parser.setHeader("Connection", "close");
+        while (true) {
+            try {
+                Socket socket = server.accept();
+                HttpParser parser = new HttpParser(socket.getInputStream());
+                System.out.println(parser.getFirstLine());
+                parser.setHeader("Connection", "close");
 
-            String host;
-            int port;
+                String host;
+                int port;
 
-            String header = parser.getHeader("Host");
-            String[] vals = header.split(":");
-            host = vals[0];
-            if (vals.length == 2) {
-                port = Integer.parseInt(vals[1]);
-            } else {
-                // TODO: check if http is missing
-                URL url = new URL(parser.getURI());
-                if (url.getPort() != -1) {
-                    port = url.getPort();
+                String header = parser.getHeader("Host");
+                String[] vals = header.split(":");
+                host = vals[0];
+                if (vals.length == 2) {
+                    port = Integer.parseInt(vals[1]);
                 } else {
-                    port = (url.getProtocol() == "https") ? 443 : 80;
+                    // TODO: check if http is missing
+                    URL url = new URL(parser.getURI());
+                    if (url.getPort() != -1) {
+                        port = url.getPort();
+                    } else {
+                        port = (url.getProtocol() == "https") ? 443 : 80;
+                    }
                 }
+//                System.out.println("host = " + host);
+//                System.out.println("port = " + port);
+
+                client = new Socket(host, port);
+//                System.out.println("client socket = " + client.toString());
+//                System.out.println();
+
+                StringBuilder request = new StringBuilder(parser.getFirstLine() + "\r\n");
+                Map<String, String> headers = parser.getHeaders();
+                headers.forEach((k, v) -> {
+                    request.append(k + ": " + v + "\r\n");
+                });
+                request.append("\r\n");
+//                System.out.println("request = ");
+//                System.out.println(request.toString());
+
+                OutputStream outToServer = client.getOutputStream();
+                DataOutputStream out = new DataOutputStream(outToServer);
+                out.write(request.toString().getBytes());
+
+
+                DataInputStream in = new DataInputStream(new BufferedInputStream(client.getInputStream()));
+
+
+//                BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+//                StringBuilder test = new StringBuilder();
+//                Stream<String> res = in.lines();
+//                res.forEach(line -> {
+//                    test.append(line + "\r\n");
+//                });
+
+                //            System.out.println("server sent:");
+                //            Stream<String> response = in.lines();
+                //            response.forEach(line -> {
+                //                System.out.println(line);
+                //            });
+
+                DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
+//                System.out.println("response = ");
+//                System.out.println(test.toString());
+                outToBrowser.write(in.readAllBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            System.out.println("host = " + host);
-            System.out.println("port = " + port);
-
-            client = new Socket(host, port);
-            System.out.println("client socket = " + client.toString());
-            System.out.println();
-
-            StringBuilder request = new StringBuilder(parser.getFirstLine() + "\r\n");
-            Map<String, String> headers = parser.getHeaders();
-            headers.forEach((k,v) -> {
-                request.append(k + ": " + v + "\r\n");
-            });
-            request.append("\r\n");
-            System.out.println(request.toString());
-
-            OutputStream outToServer = client.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outToServer);
-            out.write(request.toString().getBytes());
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            StringBuilder test = new StringBuilder();
-            Stream<String> res = in.lines();
-            res.forEach(line -> {
-                test.append(line + "\r\n");
-            });
-
-//            System.out.println("server sent:");
-//            Stream<String> response = in.lines();
-//            response.forEach(line -> {
-//                System.out.println(line);
-//            });
-
-            DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
-            System.out.println(test.toString());
-            outToBrowser.write(test.toString().getBytes());
-
-
-
-            client.close();
-            server.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

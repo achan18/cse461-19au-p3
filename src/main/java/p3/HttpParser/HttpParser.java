@@ -18,7 +18,6 @@ public class HttpParser {
     private Map<String, String> headers;
 
     public HttpParser(InputStream is) {
-        System.out.println("INSIDE PARSER");
         headers = new HashMap<String,String>();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -42,13 +41,13 @@ public class HttpParser {
         String line;
         while ((line = it.next()).length() != 0) {
 //            String line = it.next();
-            System.out.println((count++) + ": " + line + ", length = " + line.length());
+//            System.out.println((count++) + ": " + line + ", length = " + line.length());
             if (line != null && line.length() > 0) {
                 String[] args = line.split(": ");
                 headers.put(args[0], args[1]);
             }
         }
-        System.out.println("OUTSIDE BITCHES");
+//        System.out.println("OUTSIDE BITCHES");
     }
 
     public void setHeader(String header, String val) {
