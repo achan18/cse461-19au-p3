@@ -86,8 +86,7 @@ public class Proxy {
                     responseToBrowser.append("\r\n\r\n");
 
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
-                    outToBrowser.writeBytes(responseToBrowser.toString());
-                    System.out.println(responseToBrowser.toString());
+                    outToBrowser.write(responseToBrowser.toString().getBytes());
 
                     // 2. Open a bit tunnel
                     if (client.isConnected()) {
