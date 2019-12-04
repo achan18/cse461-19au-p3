@@ -22,10 +22,8 @@ public class ConnectTunnel extends Thread {
             DataInputStream fromSender = new DataInputStream(new BufferedInputStream(sender.getInputStream()));
             DataOutputStream outToReceiver = new DataOutputStream(new BufferedOutputStream(receiver.getOutputStream()));
             while (true) {
-                if (senderName.equals("Browser")) {
-                    System.out.println(senderName);
-                    System.out.println(fromSender.transferTo(outToReceiver);
-                }
+                System.out.println(senderName + " " + fromSender.transferTo(outToReceiver));
+                fromSender.close();
             }
         } catch (IOException e) {
             e.printStackTrace();

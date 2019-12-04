@@ -83,7 +83,7 @@ public class Proxy {
                     StringBuilder responseToBrowser = new StringBuilder();
                     String statusCode = (client.isConnected()) ? "200 OK" : "502 Bad Gateway";
                     responseToBrowser.append(parser.getVersion() + " " + statusCode);
-                    responseToBrowser.append("\r\n\r\n");
+                    responseToBrowser.append("\r\n");
 
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
                     outToBrowser.write(responseToBrowser.toString().getBytes());
@@ -92,8 +92,8 @@ public class Proxy {
                     if (client.isConnected()) {
                         ConnectTunnel thread = new ConnectTunnel(client, socket, "Server", "Browser");
                         ConnectTunnel thread2 = new ConnectTunnel(socket, client, "Browser", "Server");
-                        thread.start();
                         thread2.start();
+
                     }
                 }
             } catch (IOException e) {
