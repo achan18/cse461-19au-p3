@@ -68,7 +68,7 @@ public class Proxy {
 
                     DataInputStream in = new DataInputStream(new BufferedInputStream(client.getInputStream()));
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
-                    outToBrowser.write(in.readAllBytes());
+                    in.transferTo(outToBrowser);
                 } else {
                     // TUNNEL CONNECT
 
