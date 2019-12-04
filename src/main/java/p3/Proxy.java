@@ -28,7 +28,6 @@ public class Proxy {
         while (true) {
             try {
                 Socket socket = server.accept();
-                System.out.println("proxy to browser: " + socket);
                 HttpRequestParser parser = new HttpRequestParser(socket.getInputStream());
                 System.out.println(parser.getFirstLine());
 
@@ -50,16 +49,10 @@ public class Proxy {
                     }
                 }
                 client = new Socket(host, port);
-                System.out.println("proxy to server: " + client);
 
                 if (!parser.getMethod().equalsIgnoreCase("CONNECT")) {
                     // NON CONNECT PROTOCOLS
                     parser.setHeader("Connection", "close");
-                    //                System.out.println("host = " + host);
-                    //                System.out.println("port = " + port);
-
-                    //                System.out.println("client socket = " + client.toString());
-                    //                System.out.println();
 
                     StringBuilder request = new StringBuilder(parser.getFirstLine() + "\r\n");
                     Map<String, String> headers = parser.getHeaders();
@@ -84,18 +77,15 @@ public class Proxy {
                     String statusCode = (client.isConnected()) ? "200 OK" : "502 Bad Gateway";
                     responseToBrowser.append(parser.getVersion() + " " + statusCode);
                     responseToBrowser.append("\r\n\r\n");
-                    System.out.println(responseToBrowser.toString());
 
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
                     outToBrowser.write(responseToBrowser.toString().getBytes());
 
                     // 2. Open a bit tunnel
-                    if (client.isConnected()) {
-                        ConnectTunnel thread = new ConnectTunnel(client, socket, "Server", "Browser");
-                        ConnectTunnel thread2 = new ConnectTunnel(socket, client, "Browser", "Server");
-                        thread.start();
-                        thread2.start();
-                    }
+                    ConnectTunnel thread = new ConnectTunnel(client, socket, "Server", "Browser");
+                    ConnectTunnel thread2 = new ConnectTunnel(socket, client, "Browser", "Server");
+                    thread.start();
+                    thread2.start();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
