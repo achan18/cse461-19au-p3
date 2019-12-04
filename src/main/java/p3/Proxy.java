@@ -75,7 +75,7 @@ public class Proxy {
 
                     DataInputStream in = new DataInputStream(new BufferedInputStream(client.getInputStream()));
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
-                    outToBrowser.write(in.readAllBytes());
+                    in.transferTo(outToBrowser);
                 } else {
                     // TUNNEL CONNECT
 
@@ -84,10 +84,10 @@ public class Proxy {
                     String statusCode = (client.isConnected()) ? "200 OK" : "502 Bad Gateway";
                     responseToBrowser.append(parser.getVersion() + " " + statusCode);
                     responseToBrowser.append("\r\n\r\n");
-                    System.out.println(responseToBrowser.toString());
 
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
-                    outToBrowser.write(responseToBrowser.toString().getBytes());
+                    outToBrowser.writeBytes(responseToBrowser.toString());
+                    System.out.println(responseToBrowser.toString());
 
                     // 2. Open a bit tunnel
                     if (client.isConnected()) {
