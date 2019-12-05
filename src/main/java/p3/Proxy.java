@@ -65,7 +65,6 @@ public class Proxy {
                     DataOutputStream out = new DataOutputStream(outToServer);
                     out.write(request.toString().getBytes());
 
-
                     DataInputStream in = new DataInputStream(new BufferedInputStream(client.getInputStream()));
                     DataOutputStream outToBrowser = new DataOutputStream(socket.getOutputStream());
                     in.transferTo(outToBrowser);
