@@ -6,18 +6,35 @@ package p3;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class App {
-    public static final int PORT = 12345;
+    public static int PORT = 12345;
 
     public static void main(String[] args) {
         ServerSocket proxy = null;
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("dd MMM HH:mm:ss");
+
+        try {
+            int userPort = Integer.parseInt(args[0]);
+            PORT = userPort;
+        } catch(Exception e) {
+            System.out.println("Not a valid port number. Using default port: " + PORT);
+        }
+
         try {
             proxy = new ServerSocket(PORT);
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
+
+        System.out.println(dateFormat.format(date) + " - Proxy listening on " +
+                proxy.getInetAddress().getHostAddress() +
+                ":" + PORT);
 
         while (true) {
             Socket browser = null;

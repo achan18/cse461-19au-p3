@@ -4,9 +4,15 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 public class Handler extends Thread {
+    private static final Date date = new Date();
+    private static final DateFormat dateFormat = new SimpleDateFormat("dd MMM HH:mm:ss");
+
     private Socket browser_to_proxy;
     private Socket proxy_to_server;
     private String host;
@@ -19,13 +25,14 @@ public class Handler extends Thread {
     public void run() {
         try {
             InputStream fromBrowser = browser_to_proxy.getInputStream();
-
             HttpRequestParser parser = new HttpRequestParser(fromBrowser);
             String firstLine = parser.getFirstLine();
             if (firstLine == null) {
                 return;
             }
-            System.out.println(firstLine);
+
+            // print request
+            System.out.println(dateFormat.format(date) + " - >>> " + firstLine);
 
             this.host = getHost(parser);
             this.port = getPort(parser);
@@ -52,10 +59,11 @@ public class Handler extends Thread {
 //                DataInputStream in = new DataInputStream(new BufferedInputStream(proxy_to_server.getInputStream()));
 //                DataOutputStream outToBrowser = new DataOutputStream(browser_to_proxy.getOutputStream());
 //                in.transferTo(outToBrowser);
-                ConnectTunnel thread1 = new ConnectTunnel(proxy_to_server, browser_to_proxy, "server", "browser");
-                ConnectTunnel thread2 = new ConnectTunnel(browser_to_proxy, proxy_to_server, "browser", "server");
-                thread1.start();
-                thread2.start();
+
+                ConnectTunnel fromServer = new ConnectTunnel(proxy_to_server, browser_to_proxy, "server", "browser");
+                ConnectTunnel fromBrowser2 = new ConnectTunnel(browser_to_proxy, proxy_to_server, "browser", "server");
+                fromServer.start();
+                fromBrowser2.start();
             } else {
                 // TUNNEL CONNECT
 
