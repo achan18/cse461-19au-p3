@@ -49,9 +49,13 @@ public class Handler extends Thread {
                 DataOutputStream out = new DataOutputStream(outToServer);
                 out.write(request.toString().getBytes());
 
-                DataInputStream in = new DataInputStream(new BufferedInputStream(proxy_to_server.getInputStream()));
-                DataOutputStream outToBrowser = new DataOutputStream(browser_to_proxy.getOutputStream());
-                in.transferTo(outToBrowser);
+//                DataInputStream in = new DataInputStream(new BufferedInputStream(proxy_to_server.getInputStream()));
+//                DataOutputStream outToBrowser = new DataOutputStream(browser_to_proxy.getOutputStream());
+//                in.transferTo(outToBrowser);
+                ConnectTunnel thread1 = new ConnectTunnel(proxy_to_server, browser_to_proxy, "server", "browser");
+                ConnectTunnel thread2 = new ConnectTunnel(browser_to_proxy, proxy_to_server, "browser", "server");
+                thread1.start();
+                thread2.start();
             } else {
                 // TUNNEL CONNECT
 

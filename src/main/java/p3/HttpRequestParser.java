@@ -44,30 +44,29 @@ public class HttpRequestParser {
             headers.put(args[0].toLowerCase(), args[1]);
         }
 
-        if (headers.containsKey("content-length") || headers.containsKey("transfer-encoding")) {
-            // READING PAST THE HEADER IS NOT FUCKING WORKING OMFG....
-            int contentLength = Integer.parseInt(headers.get("content-length"));
-            char[] buf = new char[contentLength];
-            int total = 0;
-
-            StringBuilder bodyBuilder = new StringBuilder();
-            char[] buffer = new char[contentLength];
-            System.out.println("Reading "+ contentLength + " bytes");
-            int rlen = 1;
-            int offset = 0;
-            String line;
-            try {
-                while (rlen > 0) {
-                    rlen = reader.read(buffer, offset, contentLength);
-                    offset += rlen;
-                    System.out.println(Arrays.toString(buffer));
+//        if (headers.containsKey("content-length") || headers.containsKey("transfer-encoding")) {
+//            // READING PAST THE HEADER IS NOT FUCKING WORKING OMFG....
+//            int contentLength = Integer.parseInt(headers.get("content-length"));
+//            char[] buf = new char[contentLength];
+//            int total = 0;
+//
+//            StringBuilder bodyBuilder = new StringBuilder();
+//            char[] buffer = new char[contentLength];
+//            System.out.println("Reading "+ contentLength + " bytes");
+//            int rlen = 1;
+//            int offset = 0;
+//            String line;
+//            try {
+//                while (rlen > 0) {
+//                    rlen = reader.read(buffer, offset, contentLength);
+//                    offset += rlen;
 //                    line = new String(buffer, 0, buffer.length);
 //                    bodyBuilder.append(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
 
     }
 
