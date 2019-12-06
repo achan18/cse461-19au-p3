@@ -41,32 +41,32 @@ public class HttpRequestParser {
         for (int i = 1; i < temp.size(); i++) {
             String line = temp.get(i);
             String[] args = line.split(": ");
-            headers.put(args[0], args[1]);
+            headers.put(args[0].toLowerCase(), args[1]);
         }
 
-        if (headers.containsKey("Content-Length") || headers.containsKey("Transfer-Encoding")) {
-            System.out.println("has body");
+        if (headers.containsKey("content-length") || headers.containsKey("transfer-encoding")) {
+            // READING PAST THE HEADER IS NOT FUCKING WORKING OMFG....
+            int contentLength = Integer.parseInt(headers.get("content-length"));
+            char[] buf = new char[contentLength];
+            int total = 0;
+
+            StringBuilder bodyBuilder = new StringBuilder();
+            char[] buffer = new char[contentLength];
+            System.out.println("Reading "+ contentLength + " bytes");
+            int rlen = 1;
+            int offset = 0;
+            String line;
             try {
-                reader.readLine();
+                while (rlen > 0) {
+                    rlen = reader.read(buffer, offset, contentLength);
+                    offset += rlen;
+                    System.out.println(Arrays.toString(buffer));
+//                    line = new String(buffer, 0, buffer.length);
+//                    bodyBuilder.append(line);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println("read one line");
-            StringBuilder body = new StringBuilder();
-            String line = "";
-            while (true) {
-                try {
-                    line = reader.readLine();
-                    if (line == null || line.equals("")) {
-                        break;
-                    }
-                    System.out.println(line);
-                    body.append(line);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            System.out.println("body = " + body.toString());
         }
 
     }
@@ -79,6 +79,10 @@ public class HttpRequestParser {
 
     public String getMethod() {
         return this.method;
+    }
+
+    public String getBody() {
+        return body;
     }
 
     public Map<String, String> getHeaders() {

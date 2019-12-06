@@ -18,14 +18,21 @@ public class Handler extends Thread {
 
     public void run() {
         try {
-            HttpRequestParser parser = new HttpRequestParser(browser_to_proxy.getInputStream());
-            System.out.println(parser.getFirstLine());
+            InputStream fromBrowser = browser_to_proxy.getInputStream();
 
-            setHostAndPort(parser);
-            this.proxy_to_server = new Socket(host, port);
+            HttpRequestParser parser = new HttpRequestParser(fromBrowser);
+            String firstLine = parser.getFirstLine();
+            if (firstLine == null) {
+                return;
+            }
+            System.out.println(firstLine);
+
+            this.host = getHost(parser);
+            this.port = getPort(parser);
 
             if (!parser.getMethod().equalsIgnoreCase("CONNECT")) {
                 // NON CONNECT PROTOCOLS
+                this.proxy_to_server = new Socket(host, port);
                 parser.setHeader("Connection", "close");
 
                 StringBuilder request = new StringBuilder(parser.getFirstLine() + "\r\n");
@@ -33,7 +40,10 @@ public class Handler extends Thread {
                 headers.forEach((k, v) -> {
                     request.append(k + ": " + v + "\r\n");
                 });
-                request.append("\r\n");
+                if (parser.getBody() != null) {
+                    request.append(parser.getBody());
+                }
+                request.append("\r\n\r\n");
 
                 OutputStream outToServer = proxy_to_server.getOutputStream();
                 DataOutputStream out = new DataOutputStream(outToServer);
@@ -45,19 +55,23 @@ public class Handler extends Thread {
             } else {
                 // TUNNEL CONNECT
 
-                // 1. Send response to browser
-                StringBuilder responseToBrowser = new StringBuilder();
-                String statusCode = (proxy_to_server.isConnected()) ? "200 OK" : "502 Bad Gateway";
-                responseToBrowser.append(parser.getVersion() + " " + statusCode);
-                responseToBrowser.append("\r\n\r\n");
-
+                // 1. Send response
+                this.proxy_to_server = new Socket(host, port);
                 DataOutputStream outToBrowser = new DataOutputStream(browser_to_proxy.getOutputStream());
-                outToBrowser.write(responseToBrowser.toString().getBytes());
+
+                if (!proxy_to_server.isConnected()) {
+                    String responseToBrowser = parser.getVersion() + " 502 Bad Gateway\r\n\r\n";
+                    outToBrowser.write(responseToBrowser.getBytes());
+                    return;
+                }
+
+                String responseToBrowser = "HTTP/1.0 200 OK\r\n\r\n";
+                outToBrowser.write(responseToBrowser.getBytes());
 
                 // 2. Open a bit tunnel
-                ConnectTunnel thread = new ConnectTunnel(proxy_to_server, browser_to_proxy, "Server", "Browser");
+                ConnectTunnel thread1 = new ConnectTunnel(proxy_to_server, browser_to_proxy, "Server", "Browser");
                 ConnectTunnel thread2 = new ConnectTunnel(browser_to_proxy, proxy_to_server, "Browser", "Server");
-                thread.start();
+                thread1.start();
                 thread2.start();
             }
         } catch (Exception e) {
@@ -65,20 +79,22 @@ public class Handler extends Thread {
         }
     }
 
-    private void setHostAndPort(HttpRequestParser parser) throws MalformedURLException {
-        String header = parser.getHeader("Host");
+    private String getHost(HttpRequestParser parser) {
+        String header = parser.getHeader("host");
         String[] vals = header.split(":");
-        host = vals[0];
+        return vals[0];
+    }
+
+    private int getPort(HttpRequestParser parser) throws MalformedURLException {
+        String[] vals = parser.getHeader("host").split(":");
         if (vals.length == 2) {
-            port = Integer.parseInt(vals[1]);
-        } else {
-            // TODO: check if http is missing
+            return Integer.parseInt(vals[1]);
+        }
+        try {
             URL url = new URL(parser.getURI());
-            if (url.getPort() != -1) {
-                port = url.getPort();
-            } else {
-                port = (url.getProtocol() == "https") ? 443 : 80;
-            }
+            return (url.getProtocol().equals("https")) ? 443 : 80;
+        } catch (MalformedURLException e) {
+            return 80;
         }
     }
 }
