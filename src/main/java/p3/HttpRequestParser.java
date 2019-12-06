@@ -2,7 +2,6 @@ package p3;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Stream;
 
 public class HttpRequestParser {
 
@@ -10,37 +9,66 @@ public class HttpRequestParser {
     private String URI;
     private String version;
     private String firstLine;
+    private String body;
     private Map<String, String> headers;
 
     public HttpRequestParser(InputStream is) {
         headers = new HashMap<String,String>();
 
-        DataInputStream reader = new DataInputStream(new BufferedInputStream(is));
-        try {
-            String s = reader.readUTF();
-            System.out.println(s);
-        } catch (IOException e) {
-            e.printStackTrace();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        List<String> temp = new ArrayList<String>();
+        while (true) {
+            String line = "";
+            try {
+                line = reader.readLine();
+                if (line == null || line.equals("")) {
+                    break;
+                }
+                temp.add(line);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-//        String firstLine = temp.get(0);
-//        this.firstLine = firstLine;
-//        String[] vals = firstLine.split("\\s");
-//        this.method = vals[0];
-//        this.URI = vals[1];
-//        this.version = vals[2];
-//
-//        // get all headers
-//        // TODO: make all header keys lower case
-//        String line;
-//        for (int i = 1; i < temp.size(); i++) {
-//            line = temp.get(i);
-//            if (line != null && line.length() > 0) {
-//                String[] args = line.split(": ");
-//                headers.put(args[0], args[1]);
-//            }
-//        }
-//        System.out.println(headers);
+        if (temp.size() > 0) {
+            this.firstLine = temp.get(0);
+            String[] vals = firstLine.split("\\s");
+            this.method = vals[0];
+            this.URI = vals[1];
+            this.version = vals[2];
+        }
+
+        for (int i = 1; i < temp.size(); i++) {
+            String line = temp.get(i);
+            String[] args = line.split(": ");
+            headers.put(args[0], args[1]);
+        }
+
+        if (headers.containsKey("Content-Length") || headers.containsKey("Transfer-Encoding")) {
+            System.out.println("has body");
+            try {
+                reader.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("read one line");
+            StringBuilder body = new StringBuilder();
+            String line = "";
+            while (true) {
+                try {
+                    line = reader.readLine();
+                    if (line == null || line.equals("")) {
+                        break;
+                    }
+                    System.out.println(line);
+                    body.append(line);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("body = " + body.toString());
+        }
+
     }
 
     public void setHeader(String header, String val) {

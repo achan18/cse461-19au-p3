@@ -3,11 +3,31 @@
  */
 package p3;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 public class App {
     public static final int PORT = 12345;
 
     public static void main(String[] args) {
-        Proxy proxy = new Proxy(PORT);
-        proxy.run();
+        ServerSocket proxy = null;
+        try {
+            proxy = new ServerSocket(PORT);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        while (true) {
+            Socket browser = null;
+            try {
+                browser = proxy.accept();
+                Handler thread = new Handler(browser);
+                thread.run();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
