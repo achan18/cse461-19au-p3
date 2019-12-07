@@ -45,27 +45,22 @@ public class HttpRequestParser {
         }
 
 //        if (headers.containsKey("content-length") || headers.containsKey("transfer-encoding")) {
-//            // READING PAST THE HEADER IS NOT FUCKING WORKING OMFG....
 //            int contentLength = Integer.parseInt(headers.get("content-length"));
 //            char[] buf = new char[contentLength];
 //            int total = 0;
-//
+//            System.out.println("reading " + contentLength + " bytes");
 //            StringBuilder bodyBuilder = new StringBuilder();
 //            char[] buffer = new char[contentLength];
-//            System.out.println("Reading "+ contentLength + " bytes");
 //            int rlen = 1;
-//            int offset = 0;
 //            String line;
 //            try {
-//                while (rlen > 0) {
-//                    rlen = reader.read(buffer, offset, contentLength);
-//                    offset += rlen;
-//                    line = new String(buffer, 0, buffer.length);
-//                    bodyBuilder.append(line);
-//                }
+//                rlen = reader.read(buffer, 0, contentLength);
+//                line = new String(buffer, 0, buffer.length);
+//                bodyBuilder.append(line);
 //            } catch (IOException e) {
-//                e.printStackTrace();
+//                // continue
 //            }
+//            this.body = bodyBuilder.toString();
 //        }
 
     }

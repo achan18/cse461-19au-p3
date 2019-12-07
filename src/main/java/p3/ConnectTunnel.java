@@ -2,6 +2,7 @@ package p3;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ConnectTunnel extends Thread {
     Socket sender;
@@ -21,6 +22,8 @@ public class ConnectTunnel extends Thread {
             DataInputStream fromSender = new DataInputStream(new BufferedInputStream(sender.getInputStream()));
             DataOutputStream outToReceiver = new DataOutputStream(receiver.getOutputStream());
             fromSender.transferTo(outToReceiver);
+        } catch (SocketException e) {
+            // do nothing because it's ok
         } catch (IOException e) {
             e.printStackTrace();
         }
